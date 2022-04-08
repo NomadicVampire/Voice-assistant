@@ -1,14 +1,15 @@
-from genericpath import exists
-from turtle import exitonclick
-from unicodedata import decimal
 import pyttsx3
 import speech_recognition as sr
 import webbrowser
 import pywhatkit
-import os    #for playing songs from device
+import os    #for opening file from device
 import wikipedia 
 import pyautogui
 import keyboard #used to press any key on keyboard
+import pyjokes
+from pydictionary import Dictionary
+import datetime
+from playsound import playsound  #playing sound for alarm 
 
 Assistant = pyttsx3.init('sapi5')
 
@@ -20,6 +21,7 @@ def Speak(audio):
     print("  ")
     Assistant.say(audio)
     print(f": {audio}")  
+    print("  ")
     #whatever it speaks, it will print
     Assistant.runAndWait()
 
@@ -95,11 +97,18 @@ def TaskExc():
             os.system("TASKKILL /F /im WINWORD.EXE")
         elif 'brave' in query:
             os.system("TASKKILL /F /im brave.exe")
-        elif 'music player' in query:
+        elif 'groove music' in query:
             os.system("TASKKILL /F /im Groove Music.exe")
+        
+        # closes runing app
         elif 'jarvis' in query:
+            Speak("Say, Hello Jarvis, when you need")
             Speak('Closing Jarvis AI...')
             exit()
+
+        # Closing current opened chrome tab
+        elif 'tab' in query:
+            keyboard.press_and_release('ctrl+w') 
 
         else:
             Speak('The given app is not opened')
@@ -125,13 +134,47 @@ def TaskExc():
         elif 'decrease volume' in comm:
             keyboard.press('down')
 
+    # function for Dictionary
+    # Work only when PyDictionay is installed
+    def Dict():
+        Speak('What you want to find?')
+        prob = takecommand()
+        
+
+        if 'meaning' in prob:
+            prob = prob.replace("what is the ","")
+            prob = prob.replace("meaning of ","")
+            dict = Dictionary(prob,2)
+            res = dict.meanings()
+            Speak(f"Meaning of {prob} is {res}")
+        
+        # synonym - similar word
+        if 'synonym' in prob:
+            prob = prob.replace("what is the ","")
+            prob = prob.replace("synonym of ","")
+            dict = Dictionary(prob,2)
+            res = dict.synonyms()
+            Speak(f"Synonym of {prob} is {res}")
+        
+        # antonym - opposite of that word
+        if 'antonym' in prob:
+            prob = prob.replace("what is the antonym of","")
+            prob = prob.replace("antonym of ","")
+            dict = Dictionary(prob,2)
+            res = dict.antonyms()
+            Speak(f"Antonym of {prob} is {res}")
+
+    Speak("Hello Sir, How can I help you")
     while True:
         query = takecommand()
 
         # Different commands to run Jarvis
         if 'hello' in query:
-            Speak("hello sir, I am Jarvis AI")
-            Speak("how can i help you")
+            Speak("hello sir,  how can i help you")
+        
+        elif 'who are you' in query:
+            Speak("Sir, I am Jarvis AI which can do task on your commands")
+            Speak("Wanna Try?  Speak some command")
 
         elif 'how are you' in query:
             Speak("That's none of your buisness")
@@ -139,6 +182,7 @@ def TaskExc():
         # exits the Jarvis
         elif 'bye' in query:
             Speak("Bye Sir! See you soon")
+            Speak("Say, Hello Jarvis, to wake me up")
             break
 
         # opens given url, which is of youtube
@@ -155,23 +199,29 @@ def TaskExc():
             query = query.replace("google","")
             pywhatkit.search(query)
         
-        # website search
+        # open ___ website
         elif 'website' in query:
             Speak("This is what I found related to your search")
             query = query.replace("open ","")
             query = query.replace(" website","")
+            query = query.replace(" ","")
             web = 'https://www.'+query+'.com'
             webbrowser.open(web)
             Speak('Webpage launched')
 
-        # launchs website by giving its name
+        # launch
         elif 'launch' in query:
             Speak("Tell me the name of website")
             webpage = takecommand()
             query = query.replace("launch","")
+            query = query.replace(" ","")
             web = "https://www."+webpage+".com"
             webbrowser.open(web)
             Speak('Done Sir!')
+
+        # open a fixed location
+        elif 'location' in query:
+            webbrowser.open('https://www.google.com/maps/@23.1455177,72.6301598,338m/data=!3m1!1e3')
 
         # plays music from file location, if not found then play from youtube
         elif 'music' in query:
@@ -183,7 +233,7 @@ def TaskExc():
         elif 'wikipedia' in query:
             Speak('Searching on Wikipedia....')
             query = query.replace("search ","")
-            query = query.replace(" on wikipedia","")
+            query = query.replace(" on Wikipedia","")
             wiki = wikipedia.summary(query,2)
             # here 2 represents that it will speak first two lines from result
             Speak(f"According to Wikipedia, {wiki}")
@@ -215,9 +265,41 @@ def TaskExc():
             query = query.replace(" video","")
             YoutubeAuto(query)
 
+        # tells a joke
+        elif 'joke' in query:
+            get = pyjokes.get_joke()
+            Speak(get)
+        
+        # Tell jarvis to repeat
+        elif 'repeat after me' in query:
+            Speak('Ok Sir, I am following you...')
+            rep = takecommand()
+            Speak(f"You said: {rep}")
+
+        # Will work only when PyDictionary got installed
+        elif 'dictionary' in query:
+            Dict()
+
+        # Alarm - Other features can't work untill alarm is stopped
+        elif 'alarm' in query:
+            Speak("Enter the time in 24 hours format")
+            time = input("Enter Time : ")
+            Speak("Alarm will rang when time hits")
+
+            # this loops runs till alarm time matches
+            while True:
+                Time_Ac = datetime.datetime.now()
+                now = Time_Ac.strftime("%H:%M:%S")
+
+                if now == time:
+                    Speak("Wake up Sir! Time Over")
+                    playsound('alarm.wav')
+                    Speak("Alarm Closed!")
+
+                elif now>time:
+                    break
+
         else:
             Speak("Sorry, Your voice is not clear")
            
 TaskExc()
-
-         
